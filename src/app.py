@@ -5,6 +5,8 @@ import re
 import tempfile
 import uuid
 from pathlib import Path
+import base64
+from PIL import Image
 
 import pymupdf
 import streamlit as st
@@ -15,6 +17,19 @@ from extraction.extract_table import parse_markdown_table, readable_rows, rows_t
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS_DIR = ROOT / "outputs" / "results"
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024
+LOGO_PATH = ROOT / "assets" / "logo.png"
+def favicon_image() -> Image.Image:
+    logo = Image.open(LOGO_PATH).convert("RGBA")
+    size = max(logo.size) + 40
+    canvas = Image.new("RGBA", (size, size), "white")
+    canvas.alpha_composite(
+        logo, ((size - logo.width) // 2, (size - logo.height) // 2)
+    )
+    return canvas
+
+
+def logo_base64() -> str:
+    return base64.b64encode(LOGO_PATH.read_bytes()).decode()
 
 
 def safe_stem(filename: str) -> str:
@@ -241,8 +256,25 @@ def render_result(paper_id: str) -> None:
         st.info("Seçilen PDF için işlenecek öğe bulunamadı.")
 
 def main() -> None:
-    st.set_page_config(page_title="Bilimsel PDF Anlama", page_icon="📄", layout="wide")
-    st.title("Bilimsel PDF Anlama")
+    st.set_page_config(
+        page_title="Kırpıt",
+        page_icon=favicon_image(),
+        layout="wide",
+    )
+    st.markdown(
+        f"""
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.5rem;">
+          <div style="
+            height:3.5rem; width:2.94rem;
+            background-color: currentColor;
+            -webkit-mask: url(data:image/png;base64,{logo_base64()}) center / contain no-repeat;
+            mask: url(data:image/png;base64,{logo_base64()}) center / contain no-repeat;
+          "></div>
+          <h1 style="margin:0; padding:0;">Kırpıt</h1>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     st.write("PDF'inden tablo, formül ve figürleri çıkar; görüntüyü ve sonucu yan yana incele, kopyala.")
 
     uploaded = st.file_uploader("PDF dosyası", type=["pdf"])
