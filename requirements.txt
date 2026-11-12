@@ -1,0 +1,10 @@
+docling
+onnxruntime-gpu>=1.31.1
+pymupdf
+pydantic
+python-dotenv
+requests
+pillow
+google-genai
+ollama
+streamlit
